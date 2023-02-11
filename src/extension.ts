@@ -6,7 +6,7 @@ import { LocalStorageService } from "./localStorageService";
 import { DotSubmit, SubmitUser } from "./properties";
 
 /**
- * Runs on extension activation
+ * Runs on extension activation (defined in package.json > activationEvents)
  *
  * @export activate
  * @async
@@ -19,6 +19,7 @@ export async function activate(context: vscode.ExtensionContext) {
   let submit = vscode.commands.registerCommand(
     "umd-submit-server-manager.submit",
     async (uri: vscode.Uri) => {
+      // Get the project folder either from the current editor or from context selection.
       let projectFolder: vscode.Uri =
         uri === undefined ? getProjectFolderUri() : uri;
 
@@ -33,7 +34,7 @@ export async function activate(context: vscode.ExtensionContext) {
       let credentials: Credentials =
         storageManager.getValue<Credentials>("credentials");
 
-      if (credentials === null || credentials === undefined) {
+      if (credentials === null) {
         let folderName: string = projectFolder.fsPath.split("/").pop();
         credentials = await promptUser(folderName);
         if (credentials === undefined) {
@@ -42,15 +43,14 @@ export async function activate(context: vscode.ExtensionContext) {
       }
 
       let dot: DotSubmit = getSubmitProps(projectFolder);
-
+      let submitUser: SubmitUser;
       try {
-        await getSubmitUser(dot, credentials);
+        submitUser = await getSubmitUser(dot, credentials);
       } catch (error) {
         vscode.window.showInformationMessage(error.message);
         return;
       }
       storageManager.setValue("credentials", credentials);
-      let submitUser = await getSubmitUser(dot, credentials);
 
       let archive = await archiveFolder(projectFolder.fsPath);
 
