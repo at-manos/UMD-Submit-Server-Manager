@@ -16,25 +16,25 @@ export interface Credentials {
   /**
    * Username (Same as Shibboleth UMD username)
    *
-   * @type {(string | undefined)}
+   * @type {(string)}
    */
-  username: string | undefined;
+  username: string;
   /**
    * Password (Same as Shibboleth UMD password)
    *
-   * @type {(string | undefined)}
+   * @type {(string)}
    */
-  password: string | undefined;
+  password: string;
 }
 
 /**
- * Description placeholder
+ * Gets the SubmitUser file using the provided credentials and .submit file
  *
  * @export
  * @async
- * @param {DotSubmit} properties
- * @param {Credentials} credentials
- * @returns {Promise<SubmitUser>}
+ * @param {DotSubmit} properties - The .submit file
+ * @param {Credentials} credentials - The credentials to negotiate with
+ * @returns {Promise<SubmitUser>} - The SubmitUser object
  */
 export async function getSubmitUser(
   properties: DotSubmit,
@@ -51,7 +51,6 @@ export async function getSubmitUser(
     {
       method: "POST",
       headers: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         "Content-Type": "application/json",
       },
     }
@@ -78,14 +77,14 @@ export async function getSubmitUser(
 }
 
 /**
- * Description placeholder
+ * Submits the project to the server
  *
  * @export
  * @async
- * @param {DotSubmit} dot
- * @param {SubmitUser} user
- * @param {Buffer} archive
- * @returns {Promise<string>}
+ * @param {DotSubmit} dot - The .submit file
+ * @param {SubmitUser} user - The SubmitUser file
+ * @param {Buffer} archive - Buffer of the zip file
+ * @returns {Promise<string>} - The text response from the server
  */
 export async function submitProject(
   dot: DotSubmit,

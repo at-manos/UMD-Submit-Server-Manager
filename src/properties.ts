@@ -1,19 +1,19 @@
 export interface DotSubmit {
-  courseName: string | undefined;
-  semester: string | undefined;
-  projectNumber: string | undefined;
-  courseKey: string | undefined;
-  authentication: string | undefined;
-  baseURL: string | undefined;
-  submitURL: string | undefined;
+  courseName: string;
+  semester: string;
+  projectNumber: string;
+  courseKey: string;
+  authentication: string;
+  baseURL: string;
+  submitURL: string;
 }
 
 export interface SubmitUser {
-  courseName: string | undefined;
-  section?: string | undefined;
-  projectNumber: string | undefined;
-  semester: string | undefined;
-  classAccount?: string | undefined;
-  cvsAccount?: string | undefined;
-  oneTimePassword: string | undefined;
+  courseName: string;
+  section?: string;
+  projectNumber: string;
+  semester: string;
+  classAccount?: string;
+  cvsAccount?: string;
+  oneTimePassword: string;
 }
