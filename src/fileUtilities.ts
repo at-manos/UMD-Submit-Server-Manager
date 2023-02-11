@@ -2,6 +2,13 @@ import * as fs from "fs";
 import * as JSZip from "jszip";
 import * as path from "path";
 
+/**
+ * Converts the file content of a Java properties file to a Map
+ *
+ * @export
+ * @param {string} fileContent - The file content of a Java properties file
+ * @returns {Map<string, string>} A map of the properties file's key-value pairs
+ */
 export function javaPropertiesToMap(fileContent: string): Map<string, string> {
   let propertiesMap: Map<string, string> = new Map<string, string>();
   const regex = /(.*)=(.*)/gm;
@@ -18,6 +25,14 @@ export function javaPropertiesToMap(fileContent: string): Map<string, string> {
   return propertiesMap;
 }
 
+/**
+ * Archives a folder into a zip file
+ *
+ * @export
+ * @async
+ * @param {string} folderPath - The path to the folder to be archived
+ * @returns {Promise<Buffer>} A buffer containing the zip file
+ */
 export async function archiveFolder(folderPath: string): Promise<Buffer> {
   const zip = new JSZip();
 

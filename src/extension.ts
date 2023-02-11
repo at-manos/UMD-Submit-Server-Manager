@@ -5,13 +5,24 @@ import { archiveFolder, javaPropertiesToMap } from "./fileUtilities";
 import { LocalStorageService } from "./localStorageService";
 import { DotSubmit, SubmitUser } from "./properties";
 
+/**
+ * Runs on extension activation
+ *
+ * @export activate
+ * @async
+ * @param {vscode.ExtensionContext} context
+ * @returns {*}
+ */
 export async function activate(context: vscode.ExtensionContext) {
   let storageManager = new LocalStorageService(context.workspaceState);
 
   let submit = vscode.commands.registerCommand(
     "umd-submit-server-manager.submit",
-    async () => {
-      let submitFileResult = checkSubmitFile();
+    async (uri: vscode.Uri) => {
+      let projectFolder: vscode.Uri =
+        uri === undefined ? getProjectFolderUri() : uri;
+
+      let submitFileResult = checkSubmitFile(projectFolder);
       if (!submitFileResult) {
         vscode.window.showInformationMessage(
           "No .submit file found in project folder"
@@ -21,15 +32,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
       let credentials: Credentials =
         storageManager.getValue<Credentials>("credentials");
-      console.log(credentials);
+
       if (credentials === null || credentials === undefined) {
-        credentials = await promptUser();
+        let folderName: string = projectFolder.fsPath.split("/").pop();
+        credentials = await promptUser(folderName);
         if (credentials === undefined) {
           return undefined;
         }
       }
 
-      let dot: DotSubmit = getSubmitProps();
+      let dot: DotSubmit = getSubmitProps(projectFolder);
 
       try {
         await getSubmitUser(dot, credentials);
@@ -40,7 +52,7 @@ export async function activate(context: vscode.ExtensionContext) {
       storageManager.setValue("credentials", credentials);
       let submitUser = await getSubmitUser(dot, credentials);
 
-      let archive = await archiveFolder(getProjectFolder());
+      let archive = await archiveFolder(getProjectFolderUri());
 
       vscode.window.showInformationMessage(
         await submitProject(dot, submitUser, archive)
@@ -57,15 +69,16 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(submit, resetCredentials);
 }
 
-/*
- * This function will prompt the user for username and password in VSCode
- * TODO: This function assumes ldap, need to add support for other authentication methods (e.g. SSO)
+/**
+ * Prompts the user for their UMD credentials
+ *
+ * @todo Add support for other authentication methods (e.g. SSO OTP)
+ * @async
+ * @returns {Promise<Credentials>}
  */
-async function promptUser(): Promise<Credentials> {
+async function promptUser(folderName: string): Promise<Credentials> {
   // prompt the user with the project folder name to check if they are in the correct folder
-  let projectFolder = getProjectFolder();
-  let projectName = projectFolder.split("/").pop();
-  let prompt = "Is " + projectName + " the correct project folder?";
+  let prompt = "Is " + folderName + " the correct project folder?";
   let correctFolder = await vscode.window.showQuickPick(["Yes", "No"], {
     placeHolder: prompt,
   });
@@ -90,31 +103,45 @@ async function promptUser(): Promise<Credentials> {
   return { username: username, password: password } as Credentials;
 }
 
-/*
- * This function will get the current project folder we are in
+/**
+ * Gets the current project folder URI
+ *
+ * @returns {vscode.Uri} - The URI of the current project folder
  */
-function getProjectFolder(): string | undefined {
+function getProjectFolderUri(): vscode.Uri {
   let workspaceFolders = vscode.workspace.workspaceFolders;
   if (workspaceFolders?.length === 0) {
     return;
   }
-  return workspaceFolders[0].uri.fsPath;
+  return workspaceFolders[0].uri;
 }
 
-/*
- * This function will check if there is a file called .submit in the project folder.
+/**
+ * Checks if the provided URI contains a .submit file
+ *
+ * @param {vscode.Uri} uri - The uri to check
+ * @returns {boolean} true if the URI contains a .submit file, false otherwise
  */
-function checkSubmitFile(): boolean {
-  let projectFolder = getProjectFolder();
-  if (projectFolder === undefined) {
+function checkSubmitFile(uri: vscode.Uri): boolean {
+  if (uri === undefined) {
     return false;
   }
-  let submitFile = projectFolder + "/.submit";
-  return fs.existsSync(submitFile);
+
+  if (fs.lstatSync(uri.fsPath).isDirectory()) {
+    let submitFile = uri.fsPath + "/.submit";
+
+    return fs.existsSync(submitFile);
+  }
+  return false;
 }
 
-function getSubmitProps(): DotSubmit {
-  let submitFile = getProjectFolder() + "/.submit";
+/**
+ * Gets an interface representing the .submit file
+ *
+ * @returns {DotSubmit} - An interface representing the .submit file
+ */
+function getSubmitProps(uri: vscode.Uri): DotSubmit {
+  let submitFile = uri.fsPath + "/.submit";
   let data = fs.readFileSync(submitFile, "utf8");
 
   let propMap = javaPropertiesToMap(data);
