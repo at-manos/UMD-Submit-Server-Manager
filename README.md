@@ -11,8 +11,6 @@ This is a student-made extension that allows you to submit straight from VSCode 
 - "Reset UMD Submit Server Credentials"
   - Resets the credentials that are saved **per-workspace**
   - Acessible from the command palette. 
- 
-
 
 ## Notes
 
