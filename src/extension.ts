@@ -12,7 +12,7 @@ export async function activate(context: vscode.ExtensionContext) {
     "umd-submit-server-manager.submit",
     async () => {
       let submitFileResult = checkSubmitFile();
-      if (submitFileResult === false) {
+      if (!submitFileResult) {
         vscode.window.showInformationMessage(
           "No .submit file found in project folder"
         );
@@ -106,6 +106,9 @@ function getProjectFolder(): string | undefined {
  */
 function checkSubmitFile(): boolean {
   let projectFolder = getProjectFolder();
+  if (projectFolder === undefined) {
+    return false;
+  }
   let submitFile = projectFolder + "/.submit";
   return fs.existsSync(submitFile);
 }
