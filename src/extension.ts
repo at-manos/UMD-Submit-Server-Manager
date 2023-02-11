@@ -52,7 +52,7 @@ export async function activate(context: vscode.ExtensionContext) {
       storageManager.setValue("credentials", credentials);
       let submitUser = await getSubmitUser(dot, credentials);
 
-      let archive = await archiveFolder(getProjectFolderUri());
+      let archive = await archiveFolder(projectFolder.fsPath);
 
       vscode.window.showInformationMessage(
         await submitProject(dot, submitUser, archive)
