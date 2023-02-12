@@ -34,7 +34,8 @@
       "explorer/context": [
         {
           "command": "umd-submit-server-manager.submit",
-          "group": "navigation"
+          "group": "umd-submit-server-manager"
+
         }
       ]
     }
