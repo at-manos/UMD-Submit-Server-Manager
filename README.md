@@ -6,7 +6,7 @@ This is a student-made extension that allows you to submit straight from VSCode 
 
 - "Submit to UMD Submit Server"
   - Submits the code in your current project folder to the UMD Submit Server.
-  - Accessible from the command palette or right clicking in the explorer.
+  - Accessible from the command palette or right clicking the folder in the explorer.
   
 - "Reset UMD Submit Server Credentials"
   - Resets the credentials that are saved **per-workspace**
