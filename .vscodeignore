@@ -9,4 +9,4 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 .vscode
-node_modules
+# node_modules
