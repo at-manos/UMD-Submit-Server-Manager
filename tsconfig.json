@@ -7,6 +7,7 @@
 			"ES2020"
 		],
 		"sourceMap": true,
+		"moduleResolution": "node",
 		"rootDir": "src/",
 		"strict": false,   /* enable all strict type-checking options */
 		"typeRoots": ["./node_modules/@types", "./types"],
