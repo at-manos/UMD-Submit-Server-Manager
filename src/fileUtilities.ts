@@ -63,3 +63,23 @@ export async function archiveFolder(folderPath: string): Promise<Buffer> {
   const zipData = await zip.generateAsync({ type: "nodebuffer" });
   return zipData;
 }
+
+/**
+ * Checks if the provided URI contains a file
+ *
+ * @param {vscode.Uri} uri - The uri to check
+ * @param {string} fileName - The name of the file to check for
+ * @returns {boolean} true if the URI contains the file, false otherwise
+ */
+export function statFile(uri: vscode.Uri, fileName: string): boolean {
+  if (uri === undefined) {
+    return false;
+  }
+
+  if (fs.lstatSync(uri.fsPath).isDirectory()) {
+    let submitFile = uri.fsPath + "/" + fileName;
+
+    return fs.existsSync(submitFile);
+  }
+  return false;
+}

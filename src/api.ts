@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+import * as fs from "fs";
 import FormData from "form-data";
 import fetch from "node-fetch";
-import { javaPropertiesToMap } from "./fileUtilities";
-import { DotSubmit, SubmitUser } from "./properties";
-import { json } from "stream/consumers";
+import { javaPropertiesToMap, statFile } from "./fileUtilities";
+import { DotSubmit, SubmitUser, submitUserFromMap } from "./properties";
 
 /**
  * Simple interface for credentials
@@ -32,14 +31,22 @@ export interface Credentials {
  *
  * @export
  * @async
+ * @param {vscode.Uri} projectFolder - The project folder
  * @param {DotSubmit} properties - The .submit file
  * @param {Credentials} credentials - The credentials to negotiate with
  * @returns {Promise<SubmitUser>} - The SubmitUser object
  */
 export async function getSubmitUser(
+  projectFolder: vscode.Uri,
   properties: DotSubmit,
   credentials: Credentials
 ): Promise<SubmitUser> {
+  if (statFile(projectFolder, ".submitUser")) {
+    let propMap: Map<string, string> = javaPropertiesToMap(
+      fs.readFileSync(projectFolder.fsPath + "/" + ".submitUser", "utf8")
+    );
+    return submitUserFromMap(propMap);
+  }
   let params = new URLSearchParams();
   params.append("projectNumber", properties.projectNumber);
   params.append("courseKey", properties.courseKey);
@@ -51,6 +58,7 @@ export async function getSubmitUser(
     {
       method: "POST",
       headers: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         "Content-Type": "application/json",
       },
     }
@@ -59,21 +67,14 @@ export async function getSubmitUser(
   let data = await response.text();
   // Need to check if password is correct
   if (data.includes("failed to negotiate oneTime password")) {
-    throw new Error("Incorrect password");
+    throw new Error("Incorrect username or password");
   }
+  // Save the .submitUser file since it doesn't exist.
+  fs.writeFileSync(projectFolder.fsPath + "/" + ".submitUser", data);
 
   let propMap: Map<string, string> = javaPropertiesToMap(data);
 
-  let submitUser: SubmitUser = {
-    courseName: propMap.get("courseName"),
-    section: propMap.get("section"),
-    projectNumber: propMap.get("projectNumber"),
-    semester: propMap.get("semester"),
-    classAccount: propMap.get("classAccount"),
-    cvsAccount: propMap.get("cvsAccount"),
-    oneTimePassword: propMap.get("oneTimePassword"),
-  };
-  return submitUser;
+  return submitUserFromMap(propMap);
 }
 
 /**

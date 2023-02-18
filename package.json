@@ -24,10 +24,6 @@
       {
         "command": "umd-submit-server-manager.submit",
         "title": "Submit to UMD Submit Server"
-      },
-      {
-        "command": "umd-submit-server-manager.resetCredentials",
-        "title": "Reset UMD Submit Server Credentials"
       }
     ],
     "menus": {

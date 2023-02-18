@@ -1,9 +1,8 @@
 import * as fs from "fs";
 import * as vscode from "vscode";
 import { Credentials, getSubmitUser, submitProject } from "./api";
-import { archiveFolder, javaPropertiesToMap } from "./fileUtilities";
-import { LocalStorageService } from "./localStorageService";
-import { DotSubmit, SubmitUser } from "./properties";
+import { archiveFolder, javaPropertiesToMap, statFile } from "./fileUtilities";
+import { DotSubmit, SubmitUser, dotSubmitFromMap } from "./properties";
 
 /**
  * Runs on extension activation (defined in package.json > activationEvents)
@@ -14,8 +13,6 @@ import { DotSubmit, SubmitUser } from "./properties";
  * @returns {*}
  */
 export async function activate(context: vscode.ExtensionContext) {
-  let storageManager = new LocalStorageService(context.workspaceState);
-
   let submit = vscode.commands.registerCommand(
     "umd-submit-server-manager.submit",
     async (uri: vscode.Uri) => {
@@ -23,34 +20,30 @@ export async function activate(context: vscode.ExtensionContext) {
       let projectFolder: vscode.Uri =
         uri === undefined ? getProjectFolderUri() : uri;
 
-      let submitFileResult = checkSubmitFile(projectFolder);
+      let submitFileResult = statFile(projectFolder, ".submit");
       if (!submitFileResult) {
         vscode.window.showInformationMessage(
           "No .submit file found in project folder"
         );
         return;
       }
-
-      let credentials: Credentials =
-        storageManager.getValue<Credentials>("credentials");
-
-      if (credentials === null) {
+      let credentials = undefined;
+      if (!statFile(projectFolder, ".submitUser")) {
         let folderName: string = projectFolder.fsPath.split("/").pop();
         credentials = await promptUser(folderName);
         if (credentials === undefined) {
-          return undefined;
+          return;
         }
       }
 
       let dot: DotSubmit = getSubmitProps(projectFolder);
       let submitUser: SubmitUser;
       try {
-        submitUser = await getSubmitUser(dot, credentials);
+        submitUser = await getSubmitUser(projectFolder, dot, credentials);
       } catch (error) {
         vscode.window.showInformationMessage(error.message);
         return;
       }
-      storageManager.setValue("credentials", credentials);
 
       let archive = await archiveFolder(projectFolder.fsPath);
 
@@ -59,14 +52,8 @@ export async function activate(context: vscode.ExtensionContext) {
       );
     }
   );
-  let resetCredentials = vscode.commands.registerCommand(
-    "umd-submit-server-manager.resetCredentials",
-    () => {
-      storageManager.setValue("credentials", null);
-    }
-  );
 
-  context.subscriptions.push(submit, resetCredentials);
+  context.subscriptions.push(submit);
 }
 
 /**
@@ -117,25 +104,6 @@ function getProjectFolderUri(): vscode.Uri {
 }
 
 /**
- * Checks if the provided URI contains a .submit file
- *
- * @param {vscode.Uri} uri - The uri to check
- * @returns {boolean} true if the URI contains a .submit file, false otherwise
- */
-function checkSubmitFile(uri: vscode.Uri): boolean {
-  if (uri === undefined) {
-    return false;
-  }
-
-  if (fs.lstatSync(uri.fsPath).isDirectory()) {
-    let submitFile = uri.fsPath + "/.submit";
-
-    return fs.existsSync(submitFile);
-  }
-  return false;
-}
-
-/**
  * Gets an interface representing the .submit file
  *
  * @returns {DotSubmit} - An interface representing the .submit file
@@ -145,15 +113,5 @@ function getSubmitProps(uri: vscode.Uri): DotSubmit {
   let data = fs.readFileSync(submitFile, "utf8");
 
   let propMap = javaPropertiesToMap(data);
-  console.debug(data);
-  let dot: DotSubmit = {
-    courseName: propMap.get("courseName"),
-    semester: propMap.get("semester"),
-    projectNumber: propMap.get("projectNumber"),
-    courseKey: propMap.get("courseKey"),
-    authentication: propMap.get("authentication.type"),
-    baseURL: propMap.get("baseURL"),
-    submitURL: propMap.get("submitURL"),
-  };
-  return dot;
+  return dotSubmitFromMap(propMap);
 }
