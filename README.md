@@ -16,7 +16,7 @@ This is a student-made extension that allows you to submit straight from VSCode 
 
 ## Contact
 
-Anything wrong? Want something added? Email me at atmanos@umd.edu !
+Anything wrong? Want something added? Create an issue or email me at atmanos@umd.edu !
 
 
 ### **Enjoy!**
