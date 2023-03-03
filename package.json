@@ -16,7 +16,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:umd-submit-server-manager.submit"
+    "workspaceContains:.submit",
+    "workspaceContains:*/.submit"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -30,7 +31,8 @@
       "explorer/context": [
         {
           "command": "umd-submit-server-manager.submit",
-          "group": "umd-submit-server-manager"
+          "group": "umd-submit-server-manager",
+          "when": "umd-submit-server-manager.active"
         }
       ]
     }

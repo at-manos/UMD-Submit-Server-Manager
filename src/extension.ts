@@ -12,7 +12,13 @@ import { DotSubmit, SubmitUser, dotSubmitFromMap } from "./properties";
  * @param {vscode.ExtensionContext} context
  * @returns {*}
  */
+
 export async function activate(context: vscode.ExtensionContext) {
+  vscode.commands.executeCommand(
+    "setContext",
+    "umd-submit-server-manager.active",
+    true
+  );
   let submit = vscode.commands.registerCommand(
     "umd-submit-server-manager.submit",
     async (uri: vscode.Uri) => {
@@ -54,6 +60,20 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(submit);
+}
+
+/**
+ * Runs on extension deactivation.
+ *
+ * @export deactivate
+ * @async
+ */
+export function deactivate() {
+  vscode.commands.executeCommand(
+    "setContext",
+    "umd-submit-server-manager.active",
+    false
+  );
 }
 
 /**
