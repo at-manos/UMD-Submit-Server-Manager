@@ -78,6 +78,22 @@ export async function getSubmitUser(
   return submitUserFromMap(propMap);
 }
 
+export async function getProjectPK(dot: DotSubmit) {
+  let params = new URLSearchParams();
+  params.append("courseKey", dot.courseKey);
+  console.log(dot.baseURL + "/feed/CourseCalendar" + params);
+  let response = await fetch(dot.baseURL + "/feed/CourseCalendar?" + params, {
+    method: "GET",
+  });
+  let data = await response.text();
+  console.log(data);
+  let split: string[] = data.split("\n");
+  for (let i = 0; i < split.length; i++) {
+    if (split[i].includes(dot.projectNumber)) {
+      return split[i + 5].split("=")[1];
+    }
+  }
+}
 /**
  * Submits the project to the server
  *
@@ -121,5 +137,13 @@ export async function submitProject(
     body: formData,
     headers: formData.getHeaders(),
   });
-  return fetched.text();
+  let projectURL =
+    dot.baseURL + "/view/project.jsp?projectPK=" + (await getProjectPK(dot));
+  let resp = await (
+    await fetched.text()
+  ).replace(
+    dot.projectNumber,
+    "[" + dot.projectNumber + "]" + "(" + projectURL.trim() + ")"
+  );
+  return resp;
 }
