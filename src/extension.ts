@@ -84,7 +84,6 @@ export function deactivate() {
  * @returns {Promise<Credentials>}
  */
 async function promptUser(folderName: string): Promise<Credentials> {
-  // prompt the user with the project folder name to check if they are in the correct folder
   let prompt = "Is " + folderName + " the correct project folder?";
   let correctFolder = await vscode.window.showQuickPick(["Yes", "No"], {
     placeHolder: prompt,

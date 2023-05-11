@@ -15,11 +15,9 @@ export function javaPropertiesToMap(fileContent: string): Map<string, string> {
   const regex = /(.*)=(.*)/gm;
   let m;
   while ((m = regex.exec(fileContent)) !== null) {
-    // This is necessary to avoid infinite loops with zero-width matches
     if (m.index === regex.lastIndex) {
       regex.lastIndex++;
     }
-    // The result can be accessed through the `m`-variable.
     propertiesMap.set(m[1], m[2]);
   }
 
@@ -75,7 +73,6 @@ export async function archiveFolder(folderPath: string): Promise<Buffer> {
       /.*\.class/,
       /core/,
     ];
-    // check if .submitIgnore is in, if not don't add anything
     let ignore: RegExp[] = [];
     if (fs.existsSync(path.join(folderPath, ".submitIgnore"))) {
       fs.readFileSync(path.join(folderPath, ".submitIgnore"))

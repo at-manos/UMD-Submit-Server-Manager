@@ -65,11 +65,9 @@ export async function getSubmitUser(
   );
 
   let data = await response.text();
-  // Need to check if password is correct
   if (data.includes("failed to negotiate oneTime password")) {
     throw new Error("Incorrect username or password");
   }
-  // Save the .submitUser file since it doesn't exist.
   fs.writeFileSync(projectFolder.fsPath + "/" + ".submitUser", data);
 
   let propMap: Map<string, string> = javaPropertiesToMap(data);
@@ -126,10 +124,7 @@ export async function submitProject(
   formData.append("submitClientVersion", packageJson.version);
   formData.append("submitClientTool", "atmanos-vscode");
 
-  // form-data only accepts strings or buffers
   formData.append("submittedFiles", archive, { filename: "submit.zip" });
-
-  // send form data to dot.submitURL in a form-data post request
 
   let fetched = await fetch(dot.submitURL, {
     method: "POST",
