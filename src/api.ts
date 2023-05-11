@@ -1,7 +1,6 @@
 import FormData from "form-data";
 import * as fs from "fs";
 import fetch from "node-fetch";
-import { uri } from "vscode";
 import { javaPropertiesToMap, statFile } from "./fileUtilities";
 import { DotSubmit, SubmitUser, submitUserFromMap } from "./properties";
 
