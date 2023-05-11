@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import JSZip from "jszip";
 import * as path from "path";
+import globToRegExp from "glob-to-regexp";
 
 /**
  * Converts the file content of a Java properties file to a Map
@@ -39,49 +40,55 @@ export async function archiveFolder(folderPath: string): Promise<Buffer> {
   async function addFile(filePath: string, zip: JSZip) {
     const stat: fs.Stats = fs.statSync(filePath);
     const base: string = path.basename(filePath);
-    const baseIgnore: string[] = [
-      "RCS",
-      "SCCS",
-      "CVS",
-      ".git",
-      "CVS.adm",
-      "RCSLOG",
-      "cvslog.*",
-      "tags",
-      "TAGS",
-      ".make.state",
-      ".nse_depinfo",
-      "*~",
-      "#*",
-      ".#*",
-      ",*",
-      "_$*",
-      "*$",
-      "*.old",
-      "*.bak",
-      "*.BAK",
-      "*.orig",
-      "*.rej",
-      ".del-*",
-      "*.a",
-      "*.olb",
-      "*.o",
-      "*.obj",
-      "*.so",
-      "*.exe",
-      "*.Z",
-      "*.elc",
-      "*.ln",
-      "*.class",
-      "core",
-    ].push(
-      fs
-        .readFileSync(path.join(folderPath, ".submitignore"), "utf8")
+    const baseIgnore: RegExp[] = [
+      /RCS/,
+      /SCCS/,
+      /CVS/,
+      /\.git/,
+      /CVS\.adm/,
+      /RCSLOG/,
+      /cvslog\..*/,
+      /tags/,
+      /TAGS/,
+      /\.make.state/,
+      /\.nse_depinfo/,
+      /.*~/,
+      /#.*/,
+      /.#.*/,
+      /,.*/,
+      /_.*/,
+      /.*\.old/,
+      /.*\.bak/,
+      /.*\.BAK/,
+      /.*\.orig/,
+      /.*\.rej/,
+      /\.del-.*/,
+      /.*\.a/,
+      /.*\.olb/,
+      /.*\.o/,
+      /.*\.obj/,
+      /.*\.so/,
+      /.*\.exe/,
+      /.*\.Z/,
+      /.*\.elc/,
+      /.*\.ln/,
+      /.*\.class/,
+      /core/,
+    ];
+    // check if .submitIgnore is in, if not don't add anything
+    let ignore: RegExp[] = [];
+    if (fs.existsSync(path.join(folderPath, ".submitIgnore"))) {
+      fs.readFileSync(path.join(folderPath, ".submitIgnore"))
+        .toString()
         .split("\n")
-    );
+        .forEach((line) => {
+          ignore.push(globToRegExp(line));
+        });
+    }
+    ignore = ignore.concat(baseIgnore);
 
-    for (const ignore of baseIgnore) {
-      if (base.match(ignore)) {
+    for (const i of ignore) {
+      if (base.match(i)) {
         return;
       }
     }
