@@ -8,7 +8,7 @@
     "url": "https://github.com/at-manos/UMD-Submit-Server-Manager"
   },
   "description": "An extension to upload your code staight from VSCode.",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "engines": {
     "vscode": "^1.74.0"
   },
